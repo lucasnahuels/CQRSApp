@@ -1,5 +1,8 @@
 ﻿using CQRSCommand.Commands;
+using CQRSCommand.Database;
+using CQRSCommand.Models;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Text;
 
@@ -7,31 +10,26 @@ namespace CQRSCommand.Handlers
 {
     public class AddOrderCommandHandler : IRequestHandler<AddOrderCommand, bool>
     {
-        private readonly HttpClient _httpClient;
+        private readonly ApplicationDbContext _context;
 
-        public AddOrderCommandHandler(HttpClient httpClient)
+        public AddOrderCommandHandler(ApplicationDbContext context)
         {
-            _httpClient = httpClient;
+            _context = context;
         }
 
         public async Task<bool> Handle(AddOrderCommand command, CancellationToken cancellationToken)
         {
-            var order = new
+            var order = new Order
             {
-                customerName = command.CustomerName,
-                productName = command.ProductName,
-                quantity = command.Quantity
+                CustomerName = command.CustomerName,
+                ProductName = command.ProductName,
+                Quantity = command.Quantity
             };
 
-            var content = new StringContent(
-                JsonConvert.SerializeObject(order),
-                Encoding.UTF8,
-                "application/json");
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync(cancellationToken);
 
-            // Call an upstream API to add the order
-            var response = await _httpClient.PostAsync("https://upstream-api.com/orders", content);
-
-            return response.IsSuccessStatusCode;
+            return true;
         }
     }
 }
