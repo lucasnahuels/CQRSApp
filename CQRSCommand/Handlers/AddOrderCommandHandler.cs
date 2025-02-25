@@ -26,8 +26,15 @@ namespace CQRSCommand.Handlers
                 Quantity = command.Quantity
             };
 
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync(cancellationToken);
+            try
+            {
+                _context.Orders.Add(order);
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
 
             return true;
         }
