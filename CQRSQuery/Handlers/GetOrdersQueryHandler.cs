@@ -1,31 +1,23 @@
-﻿using CQRSQuery.Models;
+﻿using CQRSQuery.Database;
+using CQRSQuery.Models;
 using CQRSQuery.Queries;
 using MediatR;
-using Newtonsoft.Json;
+using MongoDB.Driver;
 
 namespace CQRSQuery.Handlers
 {
     public class GetOrdersQueryHandler : IRequestHandler<GetOrdersQuery, List<OrderQuery>>
     {
-        private readonly HttpClient _httpClient;
+        private readonly MongoDbContext _context;
 
-        public GetOrdersQueryHandler(HttpClient httpClient)
+        public GetOrdersQueryHandler(MongoDbContext context)
         {
-            _httpClient = httpClient;
+            _context = context;
         }
 
         public async Task<List<OrderQuery>> Handle(GetOrdersQuery request, CancellationToken cancellationToken)
         {
-            var response = await _httpClient.GetAsync("https://upstream-api.com/orders");
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return null; // Or handle errors appropriately
-            }
-
-            var responseContent = await response.Content.ReadAsStringAsync();
-            var orders = JsonConvert.DeserializeObject<List<OrderQuery>>(responseContent);
-
+            var orders = await _context.Orders.Find(_ => true).ToListAsync(cancellationToken);
             return orders;
         }
     }
