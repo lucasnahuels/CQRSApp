@@ -3,7 +3,7 @@ using MediatR;
 
 namespace CQRSQuery.Queries
 {
-    public class GetOrdersQuery: IRequest<List<Order>>
+    public class GetOrdersQuery: IRequest<List<OrderQuery>>
     {
     }
 }

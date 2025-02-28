@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace CQRSQuery.Handlers
 {
-    public class GetOrdersQueryHandler : IRequestHandler<GetOrdersQuery, List<Order>>
+    public class GetOrdersQueryHandler : IRequestHandler<GetOrdersQuery, List<OrderQuery>>
     {
         private readonly HttpClient _httpClient;
 
@@ -14,7 +14,7 @@ namespace CQRSQuery.Handlers
             _httpClient = httpClient;
         }
 
-        public async Task<List<Order>> Handle(GetOrdersQuery request, CancellationToken cancellationToken)
+        public async Task<List<OrderQuery>> Handle(GetOrdersQuery request, CancellationToken cancellationToken)
         {
             var response = await _httpClient.GetAsync("https://upstream-api.com/orders");
 
@@ -24,7 +24,7 @@ namespace CQRSQuery.Handlers
             }
 
             var responseContent = await response.Content.ReadAsStringAsync();
-            var orders = JsonConvert.DeserializeObject<List<Order>>(responseContent);
+            var orders = JsonConvert.DeserializeObject<List<OrderQuery>>(responseContent);
 
             return orders;
         }

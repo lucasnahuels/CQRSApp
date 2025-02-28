@@ -2,9 +2,6 @@
 using CQRSCommand.Database;
 using CQRSCommand.Models;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using System.Text;
 
 namespace CQRSCommand.Handlers
 {
@@ -21,8 +18,8 @@ namespace CQRSCommand.Handlers
         {
             var order = new Order
             {
-                CustomerName = command.CustomerName,
-                ProductName = command.ProductName,
+                CustomerId = command.CustomerId,
+                ProductId = command.ProductId,
                 Quantity = command.Quantity
             };
 

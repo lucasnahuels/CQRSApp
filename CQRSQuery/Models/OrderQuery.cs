@@ -1,6 +1,6 @@
 ﻿namespace CQRSQuery.Models
 {
-    public class Order
+    public class OrderQuery
     {
         public int Id { get; set; }
         public string CustomerName { get; set; }

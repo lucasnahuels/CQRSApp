@@ -1,5 +1,6 @@
 using CQRSCommand.Database;
 using Microsoft.EntityFrameworkCore;
+using CQRSCommand.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,5 +34,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapCustomerEndpoints();
 
 app.Run();
