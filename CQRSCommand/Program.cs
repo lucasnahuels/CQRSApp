@@ -1,6 +1,5 @@
 using CQRSCommand.Database;
 using Microsoft.EntityFrameworkCore;
-using CQRSCommand.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +7,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection("MongoDbSettings"));
+builder.Services.AddSingleton<MongoDbContext>();
 
 // Register HttpClient
 builder.Services.AddHttpClient();

@@ -2,31 +2,59 @@
 using CQRSCommand.Database;
 using CQRSCommand.Models;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace CQRSCommand.Handlers
 {
     public class AddOrderCommandHandler : IRequestHandler<AddOrderCommand, bool>
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ApplicationDbContext _writeDbContext;
+        private readonly MongoDbContext _readDbContext;
 
-        public AddOrderCommandHandler(ApplicationDbContext context)
+        public AddOrderCommandHandler(ApplicationDbContext writeDbContext, MongoDbContext readDbContext)
         {
-            _context = context;
+            _writeDbContext = writeDbContext;
+            _readDbContext = readDbContext;
         }
 
         public async Task<bool> Handle(AddOrderCommand command, CancellationToken cancellationToken)
         {
+            var customer = await _writeDbContext.Customer
+                .FirstOrDefaultAsync(c => c.Id == command.CustomerId, cancellationToken);
+            if (customer == null)
+            {
+                throw new Exception("Customer not found");
+            }
+
+            var product = await _writeDbContext.Product
+                .FirstOrDefaultAsync(p => p.Id == command.ProductId, cancellationToken);
+            if (product == null)
+            {
+                throw new Exception("Product not found");
+            }
+
+            var orderDate = DateTime.UtcNow;
             var order = new Order
             {
                 CustomerId = command.CustomerId,
                 ProductId = command.ProductId,
-                Quantity = command.Quantity
+                Quantity = command.Quantity,
+                OrderDate = orderDate
             };
+            var orderQuery = new OrderQuery
+            {
+                CustomerName = customer.Name,
+                ProductName = product.Name,
+                Quantity = command.Quantity,
+                OrderDate = orderDate
+            };  
 
             try
             {
-                _context.Orders.Add(order);
-                await _context.SaveChangesAsync(cancellationToken);
+                _writeDbContext.Orders.Add(order);
+                await _writeDbContext.SaveChangesAsync(cancellationToken);
+               
+                await _readDbContext.Orders.InsertOneAsync(orderQuery, cancellationToken: cancellationToken);
             }
             catch (Exception ex)
             {
