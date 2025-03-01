@@ -76,7 +76,8 @@ namespace CQRSCommand.Controllers
         {
             var product = new Product
             {
-                Name = productDto.Name
+                Name = productDto.Name,
+                Price = productDto.Price
             };
 
             _context.Product.Add(product);

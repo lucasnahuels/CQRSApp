@@ -43,25 +43,35 @@ namespace CQRSCommand.Handlers
             };
             var orderQuery = new OrderQuery
             {
+                //Id is generated automatically by MongoDB
                 CustomerName = customer.Name,
                 ProductName = product.Name,
                 Quantity = command.Quantity,
                 OrderDate = orderDate
-            };  
+            };
 
             try
             {
+                // Save to SQL database
                 _writeDbContext.Orders.Add(order);
                 await _writeDbContext.SaveChangesAsync(cancellationToken);
-               
+
+                // Save to MongoDB
                 await _readDbContext.Orders.InsertOneAsync(orderQuery, cancellationToken: cancellationToken);
+
+                return true;
             }
             catch (Exception ex)
             {
+                // Two-Phase Commit (2pc)
+                // Rollback SQL changes if MongoDB insert fails
+                _writeDbContext.Orders.Remove(order);
+                await _writeDbContext.SaveChangesAsync(cancellationToken);
+
+                // Handle exceptions appropriately
+                Console.WriteLine($"An error occurred: {ex.Message}");
                 throw;
             }
-
-            return true;
         }
     }
 }
