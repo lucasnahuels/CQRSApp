@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using CQRSCommand.Database;
 using CQRSCommand.Models;
+using CQRSCommand.Commands;
 
 namespace CQRSCommand.Controllers
 {
@@ -71,8 +72,13 @@ namespace CQRSCommand.Controllers
         // POST: api/Customer
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Customer>> PostCustomer(Customer customer)
+        public async Task<ActionResult<Customer>> PostCustomer(CustomerCreateDto customerDto)
         {
+            var customer = new Customer
+            {
+                Name = customerDto.Name
+            };
+
             _context.Customer.Add(customer);
             await _context.SaveChangesAsync();
 
