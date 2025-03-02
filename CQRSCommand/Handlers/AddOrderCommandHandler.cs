@@ -50,23 +50,32 @@ namespace CQRSCommand.Handlers
                 OrderDate = orderDate
             };
 
+            using var transaction = await _writeDbContext.Database.BeginTransactionAsync(cancellationToken);
             try
             {
                 // Save to SQL database
                 _writeDbContext.Orders.Add(order);
-                await _writeDbContext.SaveChangesAsync(cancellationToken);
+                var sqlSaveTask = _writeDbContext.SaveChangesAsync(cancellationToken);
 
                 // Save to MongoDB
-                await _readDbContext.Orders.InsertOneAsync(orderQuery, cancellationToken: cancellationToken);
+                var mongoSaveTask = _readDbContext.Orders.InsertOneAsync(orderQuery, cancellationToken: cancellationToken);
+
+                // Wait for both tasks to complete
+                await Task.WhenAll(sqlSaveTask, mongoSaveTask);
+                await transaction.CommitAsync(cancellationToken);
 
                 return true;
             }
             catch (Exception ex)
             {
-                // Two-Phase Commit (2pc)
+                // Using a distributed transaction would be ideal to ensure that both databases are updated consistently at the same time.
+                // Howerver, since we're dealing with two different databases (SQL and MongoDB), achieving a distributed transaction can be complex.
+                // One approach would be to use a two-phase commit (2PC) protocol,
+                // but it can be challenging to implement and may not be supported out-of-the-box by all databases. 
+                // (Transactions are not handle in MongoDb standalone servers. It needs a replica set)
+
                 // Rollback SQL changes if MongoDB insert fails
-                _writeDbContext.Orders.Remove(order);
-                await _writeDbContext.SaveChangesAsync(cancellationToken);
+                await transaction.RollbackAsync(cancellationToken);
 
                 // Handle exceptions appropriately
                 Console.WriteLine($"An error occurred: {ex.Message}");
