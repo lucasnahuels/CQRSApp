@@ -1,8 +1,12 @@
-﻿namespace CQRSQuery.Models
+﻿using MongoDB.Bson.Serialization.Attributes;
+
+namespace CQRSQuery.Models
 {
     public class OrderQuery
     {
-        public int Id { get; set; }
+        [BsonId]
+        [BsonSerializer(typeof(FlexibleIdSerializer))]
+        public string Id { get; set; }
         public string CustomerName { get; set; }
         public string ProductName { get; set; }
         public int Quantity { get; set; }
