@@ -10,9 +10,12 @@ services:
       - "8081:8081"
     depends_on:
       - db
+      - mongodb
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=db;Database=mypostgreedatabase;Username=postgres;Password=admin
+      - MongoDbSettings__ConnectionString=mongodb://mongodb:27017
+      - MongoDbSettings__DatabaseName=mymongodbdatabase
 
   cqrsquery:
     build:
@@ -36,7 +39,12 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: admin
     ports:
-      - "5432:5432"
+      - "5432:5432"    
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   mongodb:
     image: mongo:latest
@@ -44,3 +52,8 @@ services:
       - "27017:27017"
     environment:
       MONGO_INITDB_DATABASE: mymongodbdatabase
+    healthcheck:
+      test: ["CMD-SHELL", "mongo --eval 'db.runCommand({ ping: 1 })'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
