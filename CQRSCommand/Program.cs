@@ -43,7 +43,11 @@ using (var scope = app.Services.CreateScope())
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "CQRSCommand API V1");
+        c.RoutePrefix = string.Empty; // Set Swagger UI at the root
+    });
 }
 
 app.UseHttpsRedirection();
